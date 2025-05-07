@@ -1,0 +1,48 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.svm import SVC
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+import numpy as np
+
+# Load the dataset
+df = pd.read_csv("moonDataset.csv")
+
+# Use only X1 and X2 for visualization
+X = df[['X1', 'X2']]
+y = df['label']
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Train SVM with RBF kernel
+svm = SVC(kernel='rbf', C=1.0, gamma='scale')
+svm.fit(X_train, y_train)
+
+# Predictions and accuracy
+y_pred = svm.predict(X_test)
+print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
+
+# Plotting decision boundary and data points
+def plot_decision_boundary(model, X, y):
+    x_min, x_max = X.iloc[:, 0].min() - 0.5, X.iloc[:, 0].max() + 0.5
+    y_min, y_max = X.iloc[:, 1].min() - 0.5, X.iloc[:, 1].max() + 0.5
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 500),
+                         np.linspace(y_min, y_max, 500))
+
+    # Create a DataFrame with column names matching the training data
+    mesh_df = pd.DataFrame(np.c_[xx.ravel(), yy.ravel()], columns=X.columns)
+
+    Z = model.predict(mesh_df)
+    Z = Z.reshape(xx.shape)
+
+    plt.contourf(xx, yy, Z, alpha=0.3, cmap=plt.cm.coolwarm)
+    # Plot the data points
+    plt.scatter(X.iloc[:, 0], X.iloc[:, 1], c=y, cmap=plt.cm.coolwarm, edgecolors='k')
+    plt.title("SVM with RBF Kernel (Features: X1 & X2)")
+    plt.xlabel("X1")
+    plt.ylabel("X2")
+    plt.show()
+
+# Call the function to plot
+plot_decision_boundary(svm, X, y)
